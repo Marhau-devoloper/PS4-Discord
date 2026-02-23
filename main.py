@@ -17,7 +17,7 @@ def get_Game_Info(type):
     #Trying Connect to PS4 using FTP
     try:
         #Connecting 
-        ftp.connect(host="192.168.0.19", port=2121)
+        ftp.connect(host="0.0.0.0", port=2121)
         #Going to mnt/sandbox
         ftp.cwd("mnt/sandbox")
         #Check a mnt/sandbox Because this Directory Store Temp File of Currently Running apps
