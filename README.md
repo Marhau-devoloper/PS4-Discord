@@ -3,6 +3,11 @@ PS4 Discord integration Using Python And FTP
 It was made to use as background process it take 34.4 mb of ram not much
 but I am look for ways to optimize it in future. 
 
+<h1>Instalation on Arch with Aur</h1>
+
+```
+yay -S ps4-discord
+```
 
 <h1>Dependencies</h1>
 
