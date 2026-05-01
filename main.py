@@ -4,27 +4,96 @@ from hashlib import sha1
 import hmac
 import requests
 import re
+
 import time
 AppID = "1474289681125605376"
 
 
 
+def CreateConfig():
+    import subprocess
+    from pathlib import Path
+    a = Path("Config.json")
+    if a.exists():
+        print("File exists")
+    else:
+        print(f"Config is Exist in {a.absolute()}")
+
+        print(""" Please Turn on PS4 
+                  then enter PS4's local IP
+                  someting like 192.168.0.13
+              
+!!DONT FORGET TO ACTIVATE JAILBREAK AND FTP PLUGIN or OPTION IN GOLDHEN!!
+              
+              """)
+        while True:
+            ftp = FTP()
+            ip = input("IP: ")
+            try:
+                print("Testing PS4 IP ...")
+                ftp.connect(host=ip, port=2121)
+                ftp.quit()
+                print("PS4 was found")
+                break
+            except:
+                subprocess.run("clear")
+                print(f"Does PS4's ip is {ip} ?")
+                print("""Make Sure you Turn on PS4 with activated jailbreak/FTP
+                      and put right IP address 
+                      then Try Again""")
+                
+        json_content = '''
+        {
+            "IP": "ips"
+        }
+        '''
+        json_content = json_content.replace("ips",ip)
+        file = open("Config.json", "a")
+        file.write(f"{json_content}")
+        file.close()
+        
+        print(f"Config was Saved in {a.absolute()}")
+
+    return 0
+
+
+
+def ReadConfig():
+    import json
+
+    try:
+        with open('Config.json', 'r') as file:
+            data = json.load(file)
+            data = str(data)
+        data = data.replace("{'IP': '","")
+        data = data.replace("'}","")
+        return data
+        
+    except FileNotFoundError:
+        print("Error: The file 'Config.json' was not found.")
+        quit()
+    return 0
+
+
+
+
+
 #Get Game Inforamtion Such As Cusa ID like CUSA17419 - Persona 5 Royal Using FTP
-def get_Game_Info(type):
+def get_Game_Info(type,ip):
     #Initialize FTP
     ftp = FTP()
     respond = []
     #Trying Connect to PS4 using FTP
     try:
         #Connecting 
-        ftp.connect(host="0.0.0.0", port=2121)
+        ftp.connect(host=ip, port=2121)
         #Going to mnt/sandbox
         ftp.cwd("mnt/sandbox")
         #Check a mnt/sandbox Because this Directory Store Temp File of Currently Running apps
         ftp.dir(respond.append)
     except:
         # If IP of console is wrong or it is offline we return NoN means Not Online
-        print("PS4 Not Found")
+        print(f"PS4 Not Found by ip {ip}")
         return("NoN")
     #check For all CUSA ID's
     respond = re.findall("CUSA.*?_000",str(respond))
@@ -84,39 +153,42 @@ def discord_detect():
 #initialize Discord Presence
 Discord = Presence(AppID)
 
+CreateConfig()
+ip = ReadConfig()
+
 while True:
     #if Discord is Running we try to show a Game
     if discord_detect() == True:
         #if Game info not NoN and Stat is True we connect to Discord and Display a Game
-        if stat == True and get_Game_Info("name") != "NoN":
+        if stat == True and get_Game_Info("name",ip) != "NoN":
             try:
                 #connecting
                 print("Connecting to Discord")
                 Discord.connect()
                 #Updating
                 print("Updating Game")
-                Discord.update(pid=0,small_text="TEST",large_image=f"{get_Game_Info("icon")}",details=f"Playing {get_Game_Info("name")}",state="on PlayStation 4",name=f"{get_Game_Info("name")}",large_text=f"{get_Game_Info("name")}")
+                Discord.update(pid=0,small_text="TEST",large_image=f"{get_Game_Info("icon",ip)}",details=f"Playing {get_Game_Info("name",ip)}",state="on PlayStation 4",name=f"{get_Game_Info("name",ip)}",large_text=f"{get_Game_Info("name",ip)}")
                 print("Game Updated")
                 #puting stat to false means we connected to discord and we dont need connect to it again
                 stat = False
             except:
                 time.sleep(10)    
         #if we alredy connect to discord and gameinfo not Non, Change it     
-        elif stat == False and get_Game_Info("name") != "NoN":
+        elif stat == False and get_Game_Info("name",ip) != "NoN":
             try:
                 #clar old one
                 print("Cleaing Old Game")
                 Discord.clear(pid=0)
                 #update with new one
                 print("Updating game")
-                Discord.update(pid=0,small_text="TEST",large_image=f"{get_Game_Info("icon")}",details=f"Playing {get_Game_Info("name")}",state="on PlayStation 4",name=f"{get_Game_Info("name")}",large_text=f"{get_Game_Info("name")}")
+                Discord.update(pid=0,small_text="TEST",large_image=f"{get_Game_Info("icon",ip)}",details=f"Playing {get_Game_Info("name",ip)}",state="on PlayStation 4",name=f"{get_Game_Info("name",ip)}",large_text=f"{get_Game_Info("name",ip)}")
                 print("Game Updated")
                 #time oout for 60 sec
                 time.sleep(60)
             except:
                 time.sleep(10) 
         #if get_Game_Info is NonN we try ti disconnect from Discord and clear game name
-        elif get_Game_Info("name") == "NoN":
+        elif get_Game_Info("name",ip) == "NoN":
             print("PlayStation was not found Trying again in 30s")
             try:
                 #clear game name 
