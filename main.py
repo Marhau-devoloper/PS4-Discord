@@ -4,75 +4,72 @@ from hashlib import sha1
 import hmac
 import requests
 import re
-
+import json
 import time
 AppID = "1474289681125605376"
+
+
+
 
 
 
 def CreateConfig():
     import subprocess
     from pathlib import Path
-    a = Path("Config.json")
-    if a.exists():
-        print("File exists")
-    else:
-        print(f"Config is Exist in {a.absolute()}")
+    config_dir = Path.home() / ".config" / "ps4-discord"
+    config_file = config_dir / "Config.json"
 
-        print(""" Please Turn on PS4 
-                  then enter PS4's local IP
-                  someting like 192.168.0.13
-              
-!!DONT FORGET TO ACTIVATE JAILBREAK AND FTP PLUGIN or OPTION IN GOLDHEN!!
-              
-              """)
-        while True:
-            ftp = FTP()
-            ip = input("IP: ")
-            try:
-                print("Testing PS4 IP ...")
-                ftp.connect(host=ip, port=2121)
-                ftp.quit()
-                print("PS4 was found")
-                break
-            except:
-                subprocess.run("clear")
-                print(f"Does PS4's ip is {ip} ?")
-                print("""Make Sure you Turn on PS4 with activated jailbreak/FTP
-                      and put right IP address 
-                      then Try Again""")
-                
-        json_content = '''
-        {
-            "IP": "ips"
-        }
-        '''
-        json_content = json_content.replace("ips",ip)
-        file = open("Config.json", "a")
-        file.write(f"{json_content}")
-        file.close()
-        
-        print(f"Config was Saved in {a.absolute()}")
+    config_dir.mkdir(parents=True, exist_ok=True)
 
-    return 0
+    if config_file.exists():
+        print("Config exists")
+        return
 
+    print(f"Config will be created in {config_file}")
+
+    print("""
+Turn on PS4
+Enable FTP / GoldHEN
+
+Enter PS4 IP (example 192.168.0.13)
+""")
+
+    while True:
+        ftp = FTP()
+        ip = input("IP: ")
+
+        try:
+            print("Testing PS4 IP ...")
+            ftp.connect(host=ip, port=2121)
+            ftp.quit()
+            print("PS4 was found")
+            break
+        except:
+            subprocess.run("clear")
+            print("Wrong IP or PS4 not reachable")
+
+    config_path = Path.home() / ".config" / "ps4-discord" / "Config.json"
+    config_path.parent.mkdir(parents=True, exist_ok=True)
+
+    with open(config_path, "w") as file:
+        json.dump({"IP": ip}, file)
+
+    print(f"Config saved in {config_file}")
 
 
 def ReadConfig():
     import json
+    from pathlib import Path
+    config_path = Path.home() / ".config" / "ps4-discord" / "Config.json"
 
     try:
-        with open('Config.json', 'r') as file:
+        with open(config_path, "r") as file:
             data = json.load(file)
-            data = str(data)
-        data = data.replace("{'IP': '","")
-        data = data.replace("'}","")
-        return data
-        
+        return data["IP"]
+
     except FileNotFoundError:
-        print("Error: The file 'Config.json' was not found.")
+        print(f"Config not found at {config_path}")
         quit()
-    return 0
 
 
 
